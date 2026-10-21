@@ -1,0 +1,32 @@
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: server } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: server/package-lock.json }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  firetv:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: firetv } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - run: ./gradlew --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with: { name: doorsignal-firetv-debug-apk, path: firetv/app/build/outputs/apk/debug/app-debug.apk }
