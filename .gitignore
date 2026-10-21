@@ -1,0 +1,32 @@
+# secrets — never commit
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+local.properties
+
+# node / next
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# runtime data (events, images)
+server/data/
+
+# android / gradle
+.gradle/
+build/
+firetv/app/build/
+.idea/
+*.iml
+captures/
+
+# test output
+test-results/
+playwright-report/
+
+.DS_Store
