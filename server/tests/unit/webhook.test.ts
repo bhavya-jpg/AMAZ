@@ -44,7 +44,7 @@ describe('webhook route', () => {
     await vi.waitFor(() => expect(msgs.some((m) => m.event === 'update')).toBe(true))
     off()
     const alert = msgs.find((m) => m.event === 'alert')!
-    expect(alert.data).toMatchObject({ kind: 'door', origin: 'ring' })
+    expect(alert.data).toMatchObject({ kind: 'door', origin: 'simulated' })
     // No Ring token and no live frame in the test → explicit error, not a fake image.
     const update = msgs.find((m) => m.event === 'update')!
     expect(update.data.image_url).toBeNull()
@@ -93,6 +93,14 @@ describe('webhook route', () => {
     await vi.waitFor(() => expect(msgs.some((m) => m.event === 'alert')).toBe(true))
     off()
     expect(msgs.find((m) => m.event === 'alert')!.data.kind).toBe('badge')
+  })
+})
+
+describe('origin labelling', () => {
+  it('labels events signed with our own dev key as simulated, even without the simulator header', async () => {
+    const body = JSON.stringify(buildPayload('button_press', 'dev-1'))
+    await post(body, signBody(body, KEY))
+    expect(listEvents()[0].origin).toBe('simulated')
   })
 })
 

@@ -4,12 +4,14 @@ import { connectedSurfaceIds } from '@/lib/hub'
 import { configuredDevice, currentMode } from '@/lib/mode'
 import { ringTokenInfo } from '@/lib/ring/token'
 import { replayFixture } from '@/lib/replay'
-import { listSurfaces } from '@/lib/store'
+import { deleteExpiredImages, listSurfaces } from '@/lib/store'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
+  // Retention also runs when nothing new arrives (the console polls status every 5 s).
+  deleteExpiredImages(config.imageTtlMinutes * 60_000)
   const fx = replayFixture()
   const connected = new Set(connectedSurfaceIds())
   return Response.json({

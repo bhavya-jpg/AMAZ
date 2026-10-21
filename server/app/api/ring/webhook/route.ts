@@ -31,8 +31,9 @@ export async function POST(req: Request) {
   }
 
   const { meta, data } = parsed.data
-  // Our own simulator marks its events; anything else that passes the signature is from Ring.
-  const origin: Origin = req.headers.get('x-doorsignal-origin') === 'simulated' ? 'simulated' : 'ring'
+  // An event is "ring" only if the signing key was issued by Ring and it is not our simulator.
+  const origin: Origin =
+    config.ringHmacKeyFromRing && req.headers.get('x-doorsignal-origin') !== 'simulated' ? 'ring' : 'simulated'
   const row = {
     id: data.id,
     request_id: meta.request_id,

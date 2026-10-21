@@ -199,8 +199,14 @@ export function deleteAllEventData() {
   rmSync(imagesDir(), { recursive: true, force: true })
 }
 
-export function expiredImages(olderThanMs: number) {
-  return db()
+/** Retention: deletes alert images older than the TTL and clears their references. Returns the count removed. */
+export function deleteExpiredImages(olderThanMs: number): number {
+  const rows = db()
     .prepare('select id, image_path from events where image_path is not null and received_at < ?')
     .all(Date.now() - olderThanMs) as unknown as { id: string; image_path: string }[]
+  for (const r of rows) {
+    rmSync(r.image_path, { force: true })
+    db().prepare("update events set image_path = null, image_error = 'deleted after retention period' where id = ?").run(r.id)
+  }
+  return rows.length
 }

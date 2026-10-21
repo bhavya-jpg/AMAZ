@@ -4,7 +4,8 @@ import { signedImagePath } from './auth'
 import { broadcast } from './hub'
 import { acquireImage } from './media'
 import { configuredDevice } from './mode'
-import { setEventImage, type EventRow } from './store'
+import { config } from './config'
+import { deleteExpiredImages, setEventImage, type EventRow } from './store'
 
 export function timelineEntry(ev: EventRow) {
   return {
@@ -24,6 +25,7 @@ export function timelineEntry(ev: EventRow) {
 }
 
 export async function processEvent(ev: EventRow) {
+  deleteExpiredImages(config.imageTtlMinutes * 60_000)
   broadcast({ event: 'event', data: timelineEntry(ev) })
   if (ev.decision === 'log') return
 

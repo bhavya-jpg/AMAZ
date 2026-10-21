@@ -18,6 +18,9 @@ export const config = {
   // Key used to verify X-Signature. In production this is the HMAC Signing Key issued by Ring;
   // in the hackathon it is our own dev key, shared with the labelled simulator.
   ringHmacKey: env('RING_HMAC_KEY'),
+  // Only a key issued by Ring (partner onboarding) proves an event came from Ring.
+  // With our own dev key, every webhook event is labelled "simulated".
+  ringHmacKeyFromRing: env('RING_HMAC_KEY_SOURCE') === 'ring',
   ringAccessToken: env('RING_ACCESS_TOKEN'),
   imageTtlMinutes: Number(env('IMAGE_TTL_MIN') ?? 60),
   defaultMode: (env('DOORSIGNAL_MODE') ?? 'live') as 'live' | 'replay',
