@@ -14,6 +14,11 @@ any other paired screen — phone page, room "light" page, or browser. Motion ne
 a person detected by motion shows a quiet "person nearby" badge. Pressing OK on the remote
 acknowledges once and clears every screen.
 
+**Why not the built-in TV feature:** Fire TV can show a small Ring Picture-in-Picture feed in the
+corner of the screen on select models, as part of an Alexa doorbell announcement. DoorSignal is built
+for people who can't hear that announcement: full screen, persistent until acknowledged, press vs.
+motion, and every paired screen and light at once.
+
 **How it uses Ring:** Ring Partner API for devices, status, capabilities, image snapshots and WHEP live
 view (with Ring's required headers), and the documented webhook contract (`button_press`,
 `motion_detected.sub_type`, `X-Signature` HMAC-SHA256 verified over raw bytes, idempotent on

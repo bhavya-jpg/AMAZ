@@ -22,7 +22,16 @@ Built for the Amazon Developer Hackathon 2026 — **Ring** track (primary) and *
 - Phone accessibility features (iOS Sound Recognition, Android Sound Notifications) help only when the
   phone is on you and can hear the chime.
 
-DoorSignal routes the press itself, not a sound, to the screen you are already looking at.
+- Fire TV can already show a Ring **Picture-in-Picture** feed "in the top right corner of your TV
+  screen" on "select Echo Show and Fire TV models"
+  ([Ring support](https://ring.com/support/articles/k9l04/Viewing-Your-Cameras-on-Fire-TV-with-Alexa)),
+  set up through Alexa doorbell *announcements*.
+
+DoorSignal routes the press itself, not a sound, to the screen you are already looking at — and is
+built for someone who can't hear the announcement: a **full-screen** alert that **stays until
+acknowledged**, distinguishes a press from motion, and reaches **every** paired screen and light at
+once, clearing everywhere with one OK. The Deaf users in the Ring thread were asking for visual
+alerts while the corner PIP already existed; we have **not yet validated** DoorSignal with Deaf users.
 
 ## What is real and what is simulated
 
