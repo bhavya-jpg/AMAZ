@@ -88,29 +88,34 @@ export default function Console() {
     }
   }, [canSeeTimeline, loadEvents])
 
-  if (loadErr && !status) return <div className="wrap"><h1>DoorSignal</h1><p className="err">Cannot reach the server: {loadErr}</p></div>
-  if (!status) return <div className="wrap"><p className="muted">Loading…</p></div>
+  if (loadErr && !status) return <div className="wrap"><div className="notice"><span className="badge badge-bad">OFFLINE</span><p>Cannot reach the server: {loadErr}</p></div></div>
+  if (!status) return <div className="wrap"><div className="skeleton" aria-busy="true">Loading the console…</div></div>
 
   return (
     <div className="wrap">
-      <header className="row" style={{ justifyContent: 'space-between' }}>
+      <div className="app-head">
         <div>
-          <h1 style={{ margin: 0 }}>DoorSignal</h1>
-          <p className="muted" style={{ margin: 0 }}>When your Ring doorbell is pressed, the screen you&apos;re watching tells you — and motion doesn&apos;t.</p>
+          <p className="kicker">Console</p>
+          <h1 className="app-title">Control <em className="serif">room</em></h1>
+          <p className="muted">Link Ring, pair your screens, ring the bell.</p>
         </div>
         <ModeBadge status={status} />
-      </header>
+      </div>
 
       {status.mode === 'replay' && (
-        <p className="card small">
-          <b>Replay mode (judge sandbox).</b> Ring Developer Playground tokens expire after ~30 minutes, so this hosted demo replays
-          responses recorded from the real Playground{status.replay.captured_at ? ` on ${status.replay.captured_at}` : ''}. Doorbell presses are{' '}
-          <span className="pill simulated">SIMULATED</span>: the Playground cannot emit button_press webhooks, so the simulator signs a payload in
-          Ring&apos;s documented format and posts it to the real webhook endpoint. Open <a href="/tv" target="_blank">/tv</a> in another window to see the alert.
-        </p>
+        <div className="notice">
+          <span className="badge badge-sim">REPLAY</span>
+          <p>
+            <b>Judge sandbox.</b> Ring Developer Playground tokens expire after ~30 minutes, so this hosted demo replays responses recorded from
+            the real Playground{status.replay.captured_at ? ` on ${new Date(status.replay.captured_at).toUTCString()}` : ''}. Doorbell presses are{' '}
+            <span className="pill simulated">SIMULATED</span> — the Playground cannot emit button_press webhooks, so the simulator signs one in
+            Ring&apos;s documented format and posts it to the real webhook endpoint. Open <a href="/tv" target="_blank">/tv</a> in another window
+            to see the alert.
+          </p>
+        </div>
       )}
 
-      <div className="grid" style={{ marginTop: 16 }}>
+      <div className="grid app-grid">
         {!status.admin && <Login onDone={refresh} configured={status.admin_configured} />}
         {status.admin && <RingSetup status={status} onChange={refresh} />}
         {status.admin && <Pairing status={status} onChange={refresh} />}
@@ -122,9 +127,6 @@ export default function Console() {
 
       {status.admin && <Admin status={status} onChange={() => { refresh(); loadEvents() }} />}
 
-      <p className="muted small" style={{ marginTop: 24 }}>
-        Not a safety or emergency device. No face recognition: DoorSignal never identifies people. Images are deleted automatically.
-      </p>
     </div>
   )
 }
@@ -132,10 +134,16 @@ export default function Console() {
 function ModeBadge({ status }: { status: Status }) {
   const tokenOk = status.ring_token.source !== 'none'
   return (
-    <div className="small" style={{ textAlign: 'right' }}>
-      <div>Mode: <b data-testid="mode">{status.mode.toUpperCase()}</b></div>
-      {status.mode === 'live' && <div className={tokenOk ? 'okc' : 'err'}>Ring token: {tokenOk ? status.ring_token.source : 'not set'}</div>}
-      <div className={status.webhook_key_configured ? 'okc' : 'err'}>Webhook key: {status.webhook_key_configured ? 'configured' : 'missing'}</div>
+    <div className="statusbar">
+      <span className={`spill ${status.mode === 'replay' ? 'spill-sim' : 'spill-ok'}`}>
+        <span className="dot" /> Mode <b data-testid="mode">{status.mode.toUpperCase()}</b>
+      </span>
+      {status.mode === 'live' && (
+        <span className={`spill ${tokenOk ? 'spill-ok' : 'spill-bad'}`}><span className="dot" /> Ring token {tokenOk ? status.ring_token.source : 'not set'}</span>
+      )}
+      <span className={`spill ${status.webhook_key_configured ? 'spill-ok' : 'spill-bad'}`}>
+        <span className="dot" /> Webhook key {status.webhook_key_configured ? 'configured' : 'missing'}
+      </span>
     </div>
   )
 }

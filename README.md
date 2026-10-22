@@ -99,7 +99,7 @@ npm run dev                     # http://localhost:3000
 
 ### Demo flow (about 2 minutes)
 
-1. Open `http://localhost:3000`, log in.
+1. Open `http://localhost:3000` (landing page) → **Console** (`/console`), log in.
 2. **1 · Ring:** paste a token from the [Ring Developer Playground](https://developer.amazon.com/ring/console/playground) → Find devices → Use.
 3. Open `/tv` in another window (on a TV, open it in the TV's browser). It shows a 6-digit code. **2 · Screens:** type it → Pair.
 4. Optional: **Start live view**, and press *Package* in the Playground, so alerts carry a live frame.
@@ -119,7 +119,7 @@ RING_ACCESS_TOKEN=<Playground token> npm run capture   # records real Playground
 DOORSIGNAL_MODE=replay npm run start
 ```
 
-In replay mode anyone can open the console, `/tv`, and press *Doorbell press* (rate limited) without
+In replay mode anyone can open `/console`, `/tv`, and press *Doorbell press* (rate limited) without
 a Ring token. Pairing a screen still needs the admin password.
 
 ### Fire TV app (experimental, untested)
