@@ -2,6 +2,7 @@ name: ci
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   server:
@@ -39,8 +40,10 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t doorsignal .
       - run: |
+          # Throwaway admin password for this ephemeral container only; masked in logs.
+          pw=$(openssl rand -hex 16); echo "::add-mask::$pw"; echo "DS_PW=$pw" >> "$GITHUB_ENV"
           docker run -d --name ds -p 10000:10000 -e PORT=10000 -e DOORSIGNAL_MODE=replay \
-            -e ADMIN_PASSWORD=ci -e SESSION_SECRET=ci-secret -e RING_HMAC_KEY=ci-key doorsignal
+            -e ADMIN_PASSWORD="$pw" -e SESSION_SECRET=ci-secret -e RING_HMAC_KEY=ci-key doorsignal
           for i in $(seq 1 30); do curl -sf http://localhost:10000/api/status >/dev/null && break; sleep 1; done
           curl -sf http://localhost:10000/api/status | tee status.json
           grep -q '"mode":"replay"' status.json
@@ -54,5 +57,37 @@ jobs:
           file img.jpg | grep -q JPEG
           curl -sf -o pub.jpg http://localhost:10000/screens/tv-alert.jpg && file pub.jpg | grep -q JPEG
           curl -sf http://localhost:10000/ | grep -q 'DoorSignal'
+      # Full TV workflow in a real browser against the production image: pair /tv via /console,
+      # simulated press, alert with the recorded Playground image, Enter clears.
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: server/package-lock.json }
+      - run: npm ci && npx playwright install --with-deps chromium
+        working-directory: server
+      - run: npm run test:deployed
+        working-directory: server
+        env: { DEPLOYED_URL: 'http://localhost:10000', DEPLOYED_ADMIN_PASSWORD: '${{ env.DS_PW }}' }
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: tv-workflow-docker-report, path: server/playwright-report/deployed }
       - if: always()
         run: docker logs ds || true
+
+  render:
+    # The same spec against the live Render deployment. Render deploys after a push, so this checks
+    # whatever is live at the time. The full TV test needs the DEPLOYED_ADMIN_PASSWORD repository
+    # secret; without it that test is skipped and reported as skipped.
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    defaults: { run: { working-directory: server } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: server/package-lock.json }
+      - run: npm ci && npx playwright install --with-deps chromium
+      - run: npm run test:deployed
+        env:
+          DEPLOYED_URL: https://amaz-1r9h.onrender.com
+          DEPLOYED_ADMIN_PASSWORD: ${{ secrets.DEPLOYED_ADMIN_PASSWORD }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: tv-workflow-render-report, path: server/playwright-report/deployed }
