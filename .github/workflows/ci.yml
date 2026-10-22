@@ -31,3 +31,26 @@ jobs:
       - run: ./gradlew --no-daemon assembleDebug
       - uses: actions/upload-artifact@v4
         with: { name: doorsignal-firetv-debug-apk, path: firetv/app/build/outputs/apk/debug/app-debug.apk }
+
+  docker:
+    # Builds the same image Render builds and runs it the way Render does (PORT=10000, replay mode).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t doorsignal server
+      - run: |
+          docker run -d --name ds -p 10000:10000 -e PORT=10000 -e DOORSIGNAL_MODE=replay \
+            -e ADMIN_PASSWORD=ci -e SESSION_SECRET=ci-secret -e RING_HMAC_KEY=ci-key doorsignal
+          for i in $(seq 1 30); do curl -sf http://localhost:10000/api/status >/dev/null && break; sleep 1; done
+          curl -sf http://localhost:10000/api/status | tee status.json
+          grep -q '"mode":"replay"' status.json
+          grep -q '"available":true' status.json
+          curl -sf -o /dev/null http://localhost:10000/tv
+          curl -sf -X POST http://localhost:10000/api/sim/button_press | tee sim.json
+          grep -q '"status":"accepted"' sim.json
+          sleep 2
+          url=$(curl -sf http://localhost:10000/api/events | python3 -c 'import json,sys; print(json.load(sys.stdin)["events"][0]["image_url"])')
+          curl -sf -o img.jpg -w '%{http_code} %{content_type} %{size_download}\n' "http://localhost:10000$url"
+          file img.jpg | grep -q JPEG
+      - if: always()
+        run: docker logs ds || true

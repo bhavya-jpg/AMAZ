@@ -1,0 +1,24 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec) — DoorSignal judge sandbox.
+# Replay mode serves responses recorded from the real Ring Developer Playground,
+# because Playground tokens expire after ~30 minutes.
+services:
+  - type: web
+    name: doorsignal
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: server
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /api/status
+    envVars:
+      - key: DOORSIGNAL_MODE
+        value: replay
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: RING_HMAC_KEY
+        generateValue: true
+      - key: IMAGE_TTL_MIN
+        value: "60"
