@@ -4,11 +4,10 @@ import { Logo } from './Navbar'
 export default function Footer() {
   return (
     <footer className="footer">
-      <div className="footer-big" aria-hidden="true">See the door.</div>
       <div className="footer-grid">
         <div>
           <div className="brand"><Logo /><span>DoorSignal</span></div>
-          <p className="muted footer-note">
+          <p className="muted">
             Visual-first Ring doorbell alerts for Deaf and hard-of-hearing households. Built for the Amazon Developer Hackathon 2026 — Ring track.
           </p>
         </div>
@@ -35,7 +34,7 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <span>© 2026 DoorSignal contributors · MIT License</span>
-        <span className="mono">press ≠ motion</span>
+        <span>Built on the Ring Partner API</span>
       </div>
     </footer>
   )

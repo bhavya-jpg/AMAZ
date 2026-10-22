@@ -13,6 +13,8 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 DATA_DIR=/data
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
+# Next standalone does not include public/ — copy it or static assets (e.g. images) 404.
+COPY --from=build /app/public ./public
 # Responses recorded from the real Ring Developer Playground, for replay mode.
 COPY --from=build /app/fixtures ./fixtures
 RUN mkdir -p /data && chown node:node /data

@@ -45,8 +45,8 @@ export default function Navbar() {
           ))}
         </nav>
         <div className="nav-cta">
-          <Link href="/tv" className="btn btn-ghost btn-sm" target="_blank">Open TV screen</Link>
-          <Link href="/console" className={`btn btn-primary btn-sm ${path === '/console' ? 'is-active' : ''}`}>Console</Link>
+          <Link href="/tv" className="btn btn-link btn-sm" target="_blank">TV screen</Link>
+          <Link href="/console" className="btn btn-primary btn-sm" aria-current={path === '/console' ? 'page' : undefined}>Open console</Link>
         </div>
         <button className="nav-burger" aria-label="Menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
           <span /><span />
@@ -56,8 +56,8 @@ export default function Navbar() {
         {LINKS.map((l) => (
           <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
         ))}
-        <Link href="/tv" target="_blank">Open TV screen</Link>
-        <Link href="/console">Console</Link>
+        <Link href="/tv" target="_blank">TV screen</Link>
+        <Link href="/console">Open console</Link>
       </div>
     </header>
   )

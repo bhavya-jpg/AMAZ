@@ -95,8 +95,7 @@ export default function Console() {
     <div className="wrap">
       <div className="app-head">
         <div>
-          <p className="kicker">Console</p>
-          <h1 className="app-title">Control <em className="serif">room</em></h1>
+                    <h1 className="app-title">Console</h1>
           <p className="muted">Link Ring, pair your screens, ring the bell.</p>
         </div>
         <ModeBadge status={status} />

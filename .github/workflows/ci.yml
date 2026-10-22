@@ -52,5 +52,7 @@ jobs:
           url=$(curl -sf http://localhost:10000/api/events | python3 -c 'import json,sys; print(json.load(sys.stdin)["events"][0]["image_url"])')
           curl -sf -o img.jpg -w '%{http_code} %{content_type} %{size_download}\n' "http://localhost:10000$url"
           file img.jpg | grep -q JPEG
+          curl -sf -o pub.jpg http://localhost:10000/screens/tv-alert.jpg && file pub.jpg | grep -q JPEG
+          curl -sf http://localhost:10000/ | grep -q 'DoorSignal'
       - if: always()
         run: docker logs ds || true

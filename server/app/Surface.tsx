@@ -202,7 +202,9 @@ export default function Surface({ variant }: { variant: Variant }) {
         <div className="noimg">{alert.image_error ? 'No image available' : 'Getting image…'}</div>
       )}
       <div className="hint">{alert.kind === 'door' ? 'Press OK to acknowledge' : 'No one rang — just letting you know'}</div>
-      {alert.origin !== 'ring' && <div className="origin">{alert.origin === 'simulated' ? 'SIMULATED PRESS' : 'REPLAY'}</div>}
+      {alert.origin !== 'ring' && (
+        <div className="origin">{alert.origin === 'simulated' ? (alert.kind === 'door' ? 'SIMULATED PRESS' : 'SIMULATED MOTION') : 'REPLAY'}</div>
+      )}
       <div className="elapsed">{seconds}s ago</div>
     </main>
   )

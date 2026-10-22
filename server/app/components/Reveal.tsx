@@ -1,10 +1,11 @@
 'use client'
 // Adds .in to every [data-reveal] element as it scrolls into view. CSS does the animation and
-// shows everything immediately when the user prefers reduced motion.
+// only hides [data-reveal] once this has run (html.js), and shows everything immediately when the user prefers reduced motion.
 import { useEffect } from 'react'
 
 export default function Reveal() {
   useEffect(() => {
+    document.documentElement.classList.add('js')
     const els = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
     if (!('IntersectionObserver' in window)) {
       els.forEach((e) => e.classList.add('in'))
