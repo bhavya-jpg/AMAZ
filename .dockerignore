@@ -1,0 +1,11 @@
+.git
+.github
+firetv
+docs
+**/node_modules
+server/.next
+server/data
+server/test-results
+server/playwright-report
+**/.env*
+!server/.env.example

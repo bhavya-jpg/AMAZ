@@ -7,9 +7,8 @@ services:
     runtime: docker
     plan: free
     region: oregon
-    rootDir: server
-    dockerfilePath: ./server/Dockerfile
-    dockerContext: ./server
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/status
     envVars:
       - key: DOORSIGNAL_MODE

@@ -110,7 +110,7 @@ npm run dev                     # http://localhost:3000
 
 `render.yaml` is a Render Blueprint: in Render choose **New → Blueprint**, select this repository,
 and enter an `ADMIN_PASSWORD` when prompted (`SESSION_SECRET` and `RING_HMAC_KEY` are generated).
-It runs the Docker image from `server/` in replay mode. CI builds and runs that same image on every push.
+It builds the repository-root `Dockerfile` (which builds `server/`) and runs it in replay mode. CI builds and runs that same image on every push.
 
 ### Replay mode (hosted judge sandbox)
 

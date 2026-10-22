@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -t doorsignal server
+      - run: docker build -t doorsignal .
       - run: |
           docker run -d --name ds -p 10000:10000 -e PORT=10000 -e DOORSIGNAL_MODE=replay \
             -e ADMIN_PASSWORD=ci -e SESSION_SECRET=ci-secret -e RING_HMAC_KEY=ci-key doorsignal
