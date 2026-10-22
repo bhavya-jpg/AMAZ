@@ -252,7 +252,7 @@ function Pairing({ status, onChange }: { status: Status; onChange: () => void })
     <section className="card">
       <h2>2 · Screens and lights</h2>
       <p className="small muted">
-        Open <a href="/tv" target="_blank">/tv</a>, <a href="/phone" target="_blank">/phone</a>, <a href="/light" target="_blank">/light</a> or the Fire TV app, then type the code it shows.
+        Open <a href="/tv" target="_blank">/tv</a>, <a href="/phone" target="_blank">/phone</a>, <a href="/light" target="_blank">/light</a>, then type the code it shows.
       </p>
       <form
         className="row"

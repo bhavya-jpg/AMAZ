@@ -71,7 +71,7 @@ flowchart LR
     P --> M[Image: snapshot → live-view frame]
     M -- Bearer --> API
   end
-  R --> TV[Fire TV app]
+  R --> TV[TV page /tv]
   R --> WEB[/tv · /phone · /light/]
   R --> CON[Console + timeline]
 ```
@@ -101,7 +101,7 @@ npm run dev                     # http://localhost:3000
 
 1. Open `http://localhost:3000`, log in.
 2. **1 · Ring:** paste a token from the [Ring Developer Playground](https://developer.amazon.com/ring/console/playground) → Find devices → Use.
-3. Open `/tv` in another window (or the Fire TV app). It shows a 6-digit code. **2 · Screens:** type it → Pair.
+3. Open `/tv` in another window (on a TV, open it in the TV's browser). It shows a 6-digit code. **2 · Screens:** type it → Pair.
 4. Optional: **Start live view**, and press *Package* in the Playground, so alerts carry a live frame.
 5. **3 · Try it:** *Doorbell press* → the TV shows **DOORBELL** with the image. Press Enter/OK → every screen clears.
 6. *Bird / other motion* → nothing on screen; the timeline shows **LOG ONLY**.
