@@ -7,7 +7,9 @@ DoorSignal is a visual-first doorbell alert for Deaf and hard-of-hearing househo
 other paired screen. Motion never raises a door alert. Acknowledge once with the remote's OK button
 and every screen clears.
 
-Built for the Amazon Developer Hackathon 2026 — **Ring** track (primary) and **Fire TV** track.
+Built for the Amazon Developer Hackathon 2026 — **Ring** track.
+
+**Live judge sandbox:** _Render URL — added after deployment_ (free hosting: the first load after 15 idle minutes takes about a minute).
 
 > Hackathon prototype. Not a safety or emergency device. No face recognition.
 
@@ -42,7 +44,7 @@ alerts while the corner PIP already existed; we have **not yet validated** DoorS
 | Doorbell presses and motion events in the demo | **Simulated.** The Ring Developer Playground streams video but cannot emit `button_press` or motion webhooks. The simulator builds payloads in Ring's documented format, signs them with our dev key and POSTs them to the real webhook. Every such event is labelled **SIMULATED** in the UI. |
 | Alert images | **Real Ring media** when a Playground token is set (snapshot API, or a frame from the Ring live view). Without a token the UI says "No image available" — it never shows a placeholder as if it were a camera image. |
 | Replay mode (hosted judge sandbox) | Serves responses **recorded from the real Playground** by `npm run capture` (Playground tokens expire after ~30 min). Labelled **REPLAY**. |
-| Fire TV app | **Real Fire OS app** (`firetv/`). Built with `./gradlew assembleDebug`. See limitations for what has and hasn't been verified on a device. |
+| Fire TV app (`firetv/`) | **Experimental, not part of this submission.** It builds in CI, but has never been run on a Fire TV device or emulator, so we make no claims about it. |
 
 ## Amazon technology used — and where it runs
 
@@ -53,7 +55,6 @@ alerts while the corner PIP already existed; we have **not yet validated** DoorS
 | Ring Partner API — image snapshot (`POST /media/image/download`, 303 → pre-signed URL) | Image on every alert (`lib/media.ts`) |
 | Ring Partner API — WHEP live view (`recvonly`, offer after ICE gathering) | Console live view; frames are the fallback alert image (`app/Console.tsx`, `app/api/ring/stream`) |
 | Ring webhook contract (`button_press`, `motion_detected.sub_type`, HMAC `X-Signature`) | `app/api/ring/webhook`, `lib/ring/hmac.ts`, `lib/ring/schemas.ts` |
-| Fire TV (Fire OS): leanback launcher, foreground service, Android notifications, D-pad | `firetv/app/src/main/java/com/doorsignal/firetv/` |
 
 ## Architecture
 
@@ -105,6 +106,12 @@ npm run dev                     # http://localhost:3000
 5. **3 · Try it:** *Doorbell press* → the TV shows **DOORBELL** with the image. Press Enter/OK → every screen clears.
 6. *Bird / other motion* → nothing on screen; the timeline shows **LOG ONLY**.
 
+### Deploy to Render (judge sandbox)
+
+`render.yaml` is a Render Blueprint: in Render choose **New → Blueprint**, select this repository,
+and enter an `ADMIN_PASSWORD` when prompted (`SESSION_SECRET` and `RING_HMAC_KEY` are generated).
+It runs the Docker image from `server/` in replay mode. CI builds and runs that same image on every push.
+
 ### Replay mode (hosted judge sandbox)
 
 ```bash
@@ -115,7 +122,7 @@ DOORSIGNAL_MODE=replay npm run start
 In replay mode anyone can open the console, `/tv`, and press *Doorbell press* (rate limited) without
 a Ring token. Pairing a screen still needs the admin password.
 
-### Fire TV app
+### Fire TV app (experimental, untested)
 
 ```bash
 cd firetv
@@ -154,8 +161,8 @@ npm run test:e2e    # Playwright: core journey + 50-press latency run against th
   US-located devices and a Ring base plan.
 - **Ring production latency is unknown.** Our measured p50/p95 (≈10–15 ms) is local loopback from
   webhook receipt to render — it does not include Ring's delivery time.
-- **Fire TV:** the app compiles, but has **not yet been run on a Fire OS device or emulator**. Whether a
-  heads-up/full-screen notification appears over another app's playback on Fire OS is unverified.
+- **Fire TV:** the app compiles, but has **never been run** on a Fire OS device or emulator, so it is not
+  part of this submission. The `/tv` web page is the verified TV surface.
 - Snapshot availability for the Playground device is unverified; the live-view frame is the fallback.
 - Ring warns that datacenter IPs may receive HTTP 406; a hosted *live* mode may need Ring to allowlist
   the egress IP. Replay mode is unaffected.

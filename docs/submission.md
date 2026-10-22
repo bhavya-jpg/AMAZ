@@ -9,8 +9,8 @@ vibration accessory, and the common workaround — routines that flash smart lig
 15–30 seconds and to fire on motion too.
 
 DoorSignal listens for Ring's `button_press` webhook, verifies its HMAC signature, and within moments
-shows a full-screen **DOORBELL** alert with the latest Ring camera image on the TV (a Fire OS app) and
-any other paired screen — phone page, room "light" page, or browser. Motion never raises a door alert;
+shows a full-screen **DOORBELL** alert with the latest Ring camera image on every paired screen — a
+TV-mode page, a phone page, or a room "light" page. Motion never raises a door alert;
 a person detected by motion shows a quiet "person nearby" badge. Pressing OK on the remote
 acknowledges once and clears every screen.
 
@@ -31,7 +31,9 @@ real Playground because Playground tokens expire after 30 minutes.
 
 **Privacy:** no face recognition; Ring tokens in memory only; images auto-deleted; one-click "delete my data".
 
-**Built with:** Ring Partner API, Ring Developer Playground, Fire TV (Fire OS / Android), Next.js, TypeScript, Kotlin, OkHttp, SQLite (node:sqlite).
+**Track:** Ring.
+
+**Built with:** Ring Partner API, Ring Developer Playground, Next.js, TypeScript, SQLite (node:sqlite), Docker, Render.
 
 ## Three-minute demo script (captioned, silent-first, English, no music)
 
@@ -39,12 +41,11 @@ real Playground because Playground tokens expire after 30 minutes.
 |---|---|---|
 | 0:00–0:20 | Phone charging in another room; person watching TV | "Maya is Deaf. Her phone is in the kitchen. Someone is at the door." |
 | 0:20–0:35 | Ring community thread on screen | "Today's workaround is slow — and it fires on motion." |
-| 0:35–1:15 | Console: paste Playground token → Find devices → Use; pair the Fire TV / `/tv` with its code | "Real Ring Partner API calls." |
+| 0:35–1:15 | Console: paste Playground token → Find devices → Use; pair `/tv` (on a TV or large screen) with its code | "Real Ring Partner API calls." |
 | 1:15–1:50 | Playground *Package* stream + console live view; press **Doorbell press** (SIMULATED badge visible) → TV alert with Ring image | "A signed button_press, in Ring's documented format → DOORBELL on the TV." |
 | 1:50–2:10 | Phone page vibrates/flashes; OK on the remote → every screen clears | "Acknowledge once, everywhere." |
 | 2:10–2:30 | *Bird / other motion* → nothing on the TV; timeline shows LOG ONLY | "Motion is not the doorbell." |
-| 2:30–2:45 | Timeline latency column; Delete my data | "Measured, and private by design." |
-| 2:45–3:00 | Real-vs-simulated table from the README; repo URL | "Ring Partner API · Fire TV" |
+| 2:30–2:45 | Timeline latency column; Delete my data; replay sandbox URL | "Measured, and private by design." |
+| 2:45–3:00 | Real-vs-simulated table from the README; repo URL | "Ring Partner API · try it at <Render URL>" |
 
-Record only what is verified on the day: show the Fire TV over another app's playback **only if** it
-works on a real device; do not show any third-party video content in frame.
+Record only what is verified on the day. Do not show any third-party video content in frame.
