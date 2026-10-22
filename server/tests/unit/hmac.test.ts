@@ -37,3 +37,12 @@ describe('Ring webhook HMAC', () => {
     expect(verifySignature(body, signBody(body, key), '')).toBe(false)
   })
 })
+
+import { tokenIssuedAtMs } from '@/lib/ring/client'
+describe('Ring token issued-at', () => {
+  it('reads iat from a JWT payload and tolerates junk', () => {
+    const payload = Buffer.from(JSON.stringify({ iat: 1792682544 })).toString('base64url')
+    expect(tokenIssuedAtMs(`h.${payload}.s`)).toBe(1792682544000)
+    expect(tokenIssuedAtMs('not-a-jwt')).toBeNull()
+  })
+})

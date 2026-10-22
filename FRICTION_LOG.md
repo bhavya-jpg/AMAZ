@@ -64,3 +64,18 @@ read it in the source or docs but did not reproduce a failure against Ring.
 - **Severity:** Medium for hackathons (hosted demos must stay live until judging ends).
 - **Workaround:** Replay mode serves recorded Playground responses.
 - **Suggestion:** Exempt Playground tokens from the datacenter-IP rule, or document the allowlisting turnaround.
+
+### 9. Snapshot time range is limited to after the token was issued (undocumented)
+- **Task:** Fetch the latest Playground snapshot.
+- **Actual:** `latest_in_range` over the last 24 h → `403 TIME_RANGE_NOT_AUTHORIZED`; the same request starting after the token's `iat` succeeded.
+- **Severity:** Medium. **Workaround:** clamp the window start to the token's `iat`. **Suggestion:** document the authorized range for Playground tokens.
+
+### 10. Intermittent `422 GRECO_NO_VALID_KEY` from the pre-signed snapshot URL
+- **Task:** Repeat the same snapshot request minutes later.
+- **Actual:** `303` as before, but the pre-signed GET returned `422 GRECO_NO_VALID_KEY`; the code is not in the docs' error list.
+- **Severity:** Medium — it makes alert images unreliable. **Workaround:** fall back to a live-view frame. **Suggestion:** document the code and when it occurs.
+
+### 11. WHEP returns a generic 500 when the offer has no common codec
+- **Task:** Start live view from a Chromium build without H264.
+- **Actual:** `500 INTERNAL_ERROR`; with H264 added to the offer the same request returned `201`.
+- **Severity:** Low–medium. **Suggestion:** return a 4xx naming the missing codec (H264/90000).

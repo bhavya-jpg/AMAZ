@@ -70,6 +70,20 @@ export function getDeviceCapabilities(token: string, deviceId: string) {
   )
 }
 
+/**
+ * Ring authorizes media only for times after the access token was issued (observed:
+ * 403 TIME_RANGE_NOT_AUTHORIZED otherwise). Reads the token's own `iat` claim — no
+ * signature check is needed because this only narrows the time window we ask for.
+ */
+export function tokenIssuedAtMs(token: string): number | null {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'))
+    return typeof payload.iat === 'number' ? payload.iat * 1000 : null
+  } catch {
+    return null
+  }
+}
+
 export interface Snapshot {
   bytes: Buffer
   contentType: string
@@ -83,11 +97,13 @@ export async function downloadSnapshot(
   opts: { atMs?: number; windowMs?: number } = {},
 ): Promise<Snapshot> {
   const now = Date.now()
+  const issued = tokenIssuedAtMs(token)
+  const start = Math.max(now - (opts.windowMs ?? 10 * 60_000), issued ? issued + 1000 : 0)
   const body = opts.atMs
     ? { type: 'at_timestamp', timestamp: opts.atMs, image_options: { format: 'jpeg' } }
     : {
         type: 'latest_in_range',
-        start_timestamp: now - (opts.windowMs ?? 10 * 60_000),
+        start_timestamp: start,
         image_options: { format: 'jpeg' },
       }
   const path = `/v1/devices/${encodeURIComponent(deviceId)}/media/image/download`
