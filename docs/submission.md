@@ -55,17 +55,42 @@ console) is described in the README.
 
 **Built with:** Ring Partner API, Ring Developer Playground, Next.js, TypeScript, SQLite (node:sqlite), Docker, Render.
 
-## Three-minute demo script (captioned, silent-first, English, no music)
+## Demo video (as produced)
 
-| Time | Shot | Caption |
+About 2:50, 1920 × 1080, H.264 + AAC. Every narration line is also a burned-in caption.
+
+- **Footage:** the real app in replay mode, recorded with Playwright from four browser contexts at once
+  (console, TV, phone, room light). Doorbell presses are simulated and labelled on screen.
+- **Motion graphics:** one HTML page driven by `window.seek(t)`, rendered frame by frame and encoded with ffmpeg.
+- **Voice:** Chatterbox TTS (Resemble AI, open source), run locally; each line checked against the
+  script with a Whisper transcription.
+- **Music:** "Pilates and Yoga" by Arulo, Mixkit #419, Mixkit Stock Music Free License (not stored in
+  this repo). Sound effects: CC0 (Freesound / Kenney).
+- **Mix:** music ducked under the voice; about −16 LUFS integrated, true peak below −4 dBFS.
+
+| Start | Section | Narration (= caption) |
 |---|---|---|
-| 0:00–0:20 | Phone charging in another room; person watching TV | "Maya is Deaf. Her phone is in the kitchen. Someone is at the door." |
-| 0:20–0:35 | Ring community thread on screen | "Today's workaround is slow — and it fires on motion." |
-| 0:35–1:15 | Console: paste Playground token → Find devices → Use; pair `/tv` (on a TV or large screen) with its code | "Real Ring Partner API calls." |
-| 1:15–1:50 | Playground *Package* stream + console live view; press **Doorbell press** (SIMULATED badge visible) → TV alert with Ring image | "A signed button_press, in Ring's documented format → DOORBELL on the TV." |
-| 1:50–2:10 | Phone page vibrates/flashes; OK on the remote → every screen clears | "Acknowledge once, everywhere." |
-| 2:10–2:30 | *Bird / other motion* → nothing on the TV; timeline shows LOG ONLY | "Motion is not the doorbell." |
-| 2:30–2:45 | Timeline latency column; Delete my data; replay sandbox URL | "Measured, and private by design." |
-| 2:45–3:00 | Real-vs-simulated table from the README; repo URL | "Ring Partner API · try it at amaz-1r9h.onrender.com" |
-
-Record only what is verified on the day. Do not show any third-party video content in frame.
+| 0:01.2 | hook | A doorbell is a sound. If you can't hear it, you miss the door. |
+| 0:05.4 | hook | DoorSignal turns a Ring doorbell press into something you can see, on every screen in your home. |
+| 0:13.6 | problem | In the Ring Community, families of Deaf users have asked for a visual doorbell alert for years. |
+| 0:19.4 | problem | Ring sells no light or vibration accessory for Deaf users. The usual workaround, smart light routines, is reported to lag fifteen to thirty seconds. |
+| 0:29.0 | problem | And it flashes on motion too, when nobody rang. |
+| 0:34.1 | what | DoorSignal listens for Ring's doorbell press itself, not a sound. |
+| 0:38.4 | what | A press takes over the screen: a full screen alert, with the latest camera image, that stays until someone sees it. |
+| 0:45.9 | what | A person on camera gets a quiet notice. Cars, birds and branches are only logged. |
+| 0:52.4 | what | And it reaches every paired screen at once: the TV, a phone, and a room light. |
+| 1:00.3 | demo | Here it is running, in replay mode, with responses recorded from the Ring Developer Playground. |
+| 1:06.7 | demo | Open the TV screen. It shows a six digit pairing code. |
+| 1:10.8 | demo | In the console, enter that code, and the TV is paired. The phone pairs the same way. |
+| 1:17.7 | demo | Now, a doorbell press. The Playground can't send doorbell webhooks, so this press is simulated, signed in Ring's documented format, and labelled on screen. |
+| 1:27.0 | demo | The TV and the phone switch to a full screen alert, with the camera image recorded from the Ring Playground. |
+| 1:34.9 | demo | The flash runs twice a second, below the photosensitivity limit, and turns off with reduced motion. |
+| 1:41.3 | demo | Press OK on the remote, and every screen clears. |
+| 1:46.5 | demo | Now motion. A bird: nothing happens. A person: a quiet notice, not a door alert. |
+| 1:54.3 | demo | The timeline shows every event, which screens got it, how fast, and who acknowledged it. |
+| 2:02.4 | built | Under the hood, DoorSignal uses the Ring Partner API for devices, snapshots and live view. |
+| 2:08.8 | built | Every webhook's signature is checked on the raw bytes, and answered inside Ring's five second window. |
+| 2:14.9 | built | Images expire, tokens stay in memory, and there is no face recognition. |
+| 2:21.9 | use | To try it yourself, open the live demo, and the TV screen in a second window. Log in to the console with the password from our testing instructions, pair the TV, and press the doorbell. |
+| 2:34.4 | end | What's real and what's simulated is labelled everywhere. Next, we'll test it with Deaf and hard of hearing users. |
+| 2:40.7 | end | DoorSignal. Know when someone's at the door. Try the live demo, linked below. |

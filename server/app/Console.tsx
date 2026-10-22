@@ -288,7 +288,6 @@ function Pairing({ status, onChange }: { status: Status; onChange: () => void })
             {status.surfaces.map((s) => (
               <tr key={s.id}>
                 <td>{s.name}</td>
-                <td className="muted">{s.type}</td>
                 <td className={s.connected ? 'okc' : 'muted'}>{s.connected ? 'connected' : 'offline'}</td>
                 <td>
                   <button

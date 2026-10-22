@@ -61,6 +61,7 @@ button.primary:hover, .btn-primary:hover { background: #000; border-color: #000;
 .btn-sm { font-size: 0.85rem; padding: 0.45em 0.95em; }
 .btn-lg { font-size: 1rem; padding: 0.8em 1.4em; }
 button.danger { border-color: rgba(198, 40, 40, 0.4); color: var(--bad); background: var(--card); }
+button.small { font-size: 0.78rem; padding: 0.35em 0.75em; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 input { background: var(--card); border: 1px solid var(--line-2); border-radius: 10px; padding: 0.6em 0.8em; min-width: 0; }
 input:focus { outline: none; border-color: var(--link); box-shadow: 0 0 0 3px rgba(10, 91, 211, 0.15); }
@@ -256,7 +257,7 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--bg-alt); p
 .pill.simulated, .pill.replay { background: #efe6fb; color: #5a2ca0; }
 .pill.ring { background: #e3f4ea; color: #155d38; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-td, th { text-align: left; padding: 10px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td, th { text-align: left; padding: 10px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
 tbody tr:hover { background: #faf9f6; }
 td:first-child, td b { white-space: nowrap; }
