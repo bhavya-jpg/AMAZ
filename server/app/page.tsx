@@ -224,7 +224,7 @@ export default function Landing() {
             <h2 className="h2">Try it in thirty seconds.</h2>
             <ol>
               <li>Open the <Link href="/tv" target="_blank">TV screen</Link> in a new window.</li>
-              <li>Pair it in the <Link href="/console">console</Link> with the code it shows.</li>
+              <li>Log in to the <Link href="/console">console</Link> and pair it with the code it shows.</li>
               <li>Press “Doorbell press”, then try motion.</li>
             </ol>
             <div className="hero-ctas">

@@ -73,3 +73,11 @@ test('latency: 50 presses, webhook receipt → alert rendered on the TV', async 
   console.log(`LATENCY n=${ms.length} p50=${p50}ms p95=${p95}ms max=${ms[ms.length - 1]}ms (local loopback, simulated events)`)
   expect(p95).toBeLessThan(2000)
 })
+
+test('simulator works behind a proxy (public Host header is not reachable from the server)', async ({ request }) => {
+  await admin(request)
+  // Render forwards requests with the public host name; the simulator must still reach its own webhook.
+  const r = await request.post('/api/sim/button_press', { headers: { host: 'doorsignal.example', 'x-forwarded-proto': 'https' } })
+  expect(r.status()).toBe(200)
+  expect((await r.json()).webhook.body.status).toBe('accepted')
+})

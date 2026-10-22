@@ -33,7 +33,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ type: string }
       { status: 409 },
     )
   }
-  const webhookUrl = new URL('/api/ring/webhook', req.url).toString()
-  const result = await sendSimulated(type as SimType, deviceId, webhookUrl, config.ringHmacKey)
-  return Response.json({ simulated: true, type, webhook: result }, { status: result.status === 200 ? 200 : 502 })
+  // Post to ourselves over loopback. req.url carries the public Host (e.g. behind Render's proxy),
+  // which is not reachable from inside the container.
+  const port = process.env.PORT || new URL(req.url).port || '3000'
+  const webhookUrl = `http://127.0.0.1:${port}/api/ring/webhook`
+  try {
+    const result = await sendSimulated(type as SimType, deviceId, webhookUrl, config.ringHmacKey)
+    return Response.json({ simulated: true, type, webhook: result }, { status: result.status === 200 ? 200 : 502 })
+  } catch (e) {
+    console.error('[sim] could not reach own webhook', webhookUrl, e)
+    return Response.json({ error: 'simulator could not reach the webhook endpoint' }, { status: 502 })
+  }
 }

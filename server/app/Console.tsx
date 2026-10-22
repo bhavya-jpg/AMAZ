@@ -154,6 +154,7 @@ function Login({ onDone, configured }: { onDone: () => void; configured: boolean
     <section className="card">
       <h2>Console login</h2>
       {!configured && <p className="err small">ADMIN_PASSWORD is not set on the server.</p>}
+      <p className="small muted">Log in to pair the TV, phone and light screens. Judges: the password is in the Devpost testing instructions.</p>
       <form
         className="row"
         onSubmit={async (e) => {
