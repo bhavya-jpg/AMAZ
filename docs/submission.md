@@ -33,6 +33,26 @@ real Playground because Playground tokens expire after 30 minutes.
 
 **Track:** Ring.
 
+**Try it:** https://amaz-1r9h.onrender.com/
+
+## Devpost testing instructions (paste into the form; type the password there, never in this repo)
+
+1. Open https://amaz-1r9h.onrender.com/ and wait up to a minute if it is waking up (free hosting).
+2. Open https://amaz-1r9h.onrender.com/tv in a second window. It shows a 6-digit pairing code.
+3. Open https://amaz-1r9h.onrender.com/console and log in with the admin password: `<type it in the Devpost form only>`.
+4. Under "2 · Screens and lights", enter the code. The TV window switches to a clock.
+5. Under "3 · Try it", press **Doorbell press**: the TV shows a full-screen DOORBELL alert with a
+   recorded Ring Playground camera image, labelled SIMULATED PRESS. Press Enter (OK) in the TV window
+   to acknowledge.
+6. Press **Bird / other motion**: nothing appears on the TV. Press **Person nearby (motion)**: a quiet
+   blue PERSON NEARBY screen appears instead of a door alert.
+7. The Timeline shows each event, the decision, which screens received it, how long each took, and the
+   acknowledgement.
+
+The hosted sandbox runs in replay mode: Playground tokens expire after 30 minutes, so it replays
+responses recorded from the real Ring Developer Playground. Live mode (paste a Playground token in the
+console) is described in the README.
+
 **Built with:** Ring Partner API, Ring Developer Playground, Next.js, TypeScript, SQLite (node:sqlite), Docker, Render.
 
 ## Three-minute demo script (captioned, silent-first, English, no music)
@@ -46,6 +66,6 @@ real Playground because Playground tokens expire after 30 minutes.
 | 1:50–2:10 | Phone page vibrates/flashes; OK on the remote → every screen clears | "Acknowledge once, everywhere." |
 | 2:10–2:30 | *Bird / other motion* → nothing on the TV; timeline shows LOG ONLY | "Motion is not the doorbell." |
 | 2:30–2:45 | Timeline latency column; Delete my data; replay sandbox URL | "Measured, and private by design." |
-| 2:45–3:00 | Real-vs-simulated table from the README; repo URL | "Ring Partner API · try it at <Render URL>" |
+| 2:45–3:00 | Real-vs-simulated table from the README; repo URL | "Ring Partner API · try it at amaz-1r9h.onrender.com" |
 
 Record only what is verified on the day. Do not show any third-party video content in frame.

@@ -9,7 +9,7 @@ and every screen clears.
 
 Built for the Amazon Developer Hackathon 2026 — **Ring** track.
 
-**Live judge sandbox:** _Render URL — added after deployment_ (free hosting: the first load after 15 idle minutes takes about a minute).
+**Live judge sandbox:** [https://amaz-1r9h.onrender.com/](https://amaz-1r9h.onrender.com/) (free hosting: the first load after 15 idle minutes takes about a minute).
 
 > Hackathon prototype. Not a safety or emergency device. No face recognition.
 
