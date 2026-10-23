@@ -12,10 +12,14 @@ const JPEG = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3])
 
 type Params = { model: string; output_config: unknown; system: string; messages: { content: unknown[] }[] }
 
-function mockClient(impl: (params: Params) => unknown) {
+function mockClient(impl: (params: Params) => unknown, runtime?: { send: unknown }) {
   const create = vi.fn(async (params: Params) => impl(params))
-  setDescribeClientForTests({ messages: { create } } as never)
+  setDescribeClientForTests({ messages: { create } } as never, runtime as never)
   return create
+}
+
+const unavailable = (p: Params) => {
+  throw Object.assign(new Error('403'), { status: 403, error: { message: `${p.model} is not available for this account.` } })
 }
 
 afterEach(() => {
@@ -66,16 +70,55 @@ describe('describeImage', () => {
   })
 
   it('reports AWS\'s reason when no model is available', async () => {
-    mockClient((p) => { throw Object.assign(new Error('403'), { status: 403, error: { message: `${p.model} is not available for this account.` } }) })
+    const send = vi.fn(async () => {
+      throw Object.assign(new Error('amazon.nova-pro-v1:0 is not available for this account.'), { $metadata: { httpStatusCode: 403 } })
+    })
+    mockClient(unavailable, { send })
     const d = await describeImage(JPEG)
     expect(d.text).toBeNull()
-    expect(d.error).toMatch(/HTTP 403\): anthropic\..* is not available for this account/)
+    expect(d.error).toMatch(/HTTP 403\): amazon\.nova-pro-v1:0 is not available for this account/)
   })
 
   it('cleans model output to one short line', () => {
     expect(cleanDescription('**A dog**\n on the porch.')).toBe('A dog on the porch.')
     expect(cleanDescription('   ')).toBeNull()
     expect(cleanDescription('x'.repeat(300))!.length).toBe(198)
+  })
+})
+
+describe('Amazon Nova through the Bedrock Converse API', () => {
+  it('falls back to Nova when the account cannot use any Claude model, sending the image bytes', async () => {
+    const send = vi.fn(async (cmd: { input: Record<string, unknown> }) => ({
+      cmdSeen: Boolean(cmd),
+      stopReason: 'end_turn',
+      output: { message: { role: 'assistant', content: [{ text: 'A person with a parcel at the door.' }] } },
+    }))
+    mockClient(unavailable, { send })
+    const d = await describeImage(JPEG)
+    const nova = config.bedrock.models.find((m) => !m.startsWith('anthropic.'))!
+    expect(d).toEqual({ text: 'A person with a parcel at the door.', source: `bedrock: ${nova}`, error: null })
+    const input = send.mock.calls[0][0].input as { modelId: string; system: unknown; messages: { content: unknown[] }[] }
+    expect(input.modelId).toBe(nova)
+    expect(input.system).toEqual([{ text: DESCRIBE_SYSTEM }])
+    expect(input.messages[0].content[0]).toEqual({ image: { format: 'jpeg', source: { bytes: JPEG } } })
+  })
+
+  it('tries the next Nova ID when one is not served on demand in the region', async () => {
+    setDescribeClientForTests({ messages: { create: vi.fn() } } as never, {
+      send: vi.fn(async (cmd: { input: { modelId: string } }) => {
+        if (cmd.input.modelId === 'us.amazon.nova-2-lite-v1:0') {
+          throw Object.assign(new Error('The provided model identifier is invalid.'), { $metadata: { httpStatusCode: 400 } })
+        }
+        return { stopReason: 'end_turn', output: { message: { role: 'assistant', content: [{ text: 'Nobody there.' }] } } }
+      }),
+    } as never)
+    const prev = config.bedrock.models
+    config.bedrock.models = ['us.amazon.nova-2-lite-v1:0', 'amazon.nova-lite-v1:0']
+    try {
+      expect(await describeImage(JPEG)).toEqual({ text: 'Nobody there.', source: 'bedrock: amazon.nova-lite-v1:0', error: null })
+    } finally {
+      config.bedrock.models = prev
+    }
   })
 })
 

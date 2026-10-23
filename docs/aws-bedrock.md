@@ -1,6 +1,6 @@
 # AWS integration: Amazon Bedrock image descriptions
 
-DoorSignal uses **Claude on Amazon Bedrock** to turn the Ring camera image of each doorbell press
+DoorSignal uses **Amazon Bedrock** (Claude, or Amazon Nova where the account can't use Claude) to turn the Ring camera image of each doorbell press
 into one plain-language sentence, for example *"A person holding a package at the front door."*
 The sentence appears under the image on every paired screen and is read by screen readers and
 refreshable braille displays.
@@ -25,10 +25,14 @@ Ring button_press webhook
               └─ description → stored on the event → "update" to every screen
 ```
 
-- **Client:** the official Anthropic Bedrock SDK, `AnthropicBedrockMantle` from
-  `@anthropic-ai/bedrock-sdk` (Bedrock's Messages API endpoint, `bedrock-mantle.<region>.api.aws`).
-- **Model:** Claude Opus 5.5 first, then Sonnet 5.5, Haiku 5.5 and Haiku 4.5 if the AWS account cannot use it (override with `BEDROCK_MODEL`); the model that answered is recorded with each description, `output_config.effort: "low"`,
-  one image (base64 JPEG) plus a fixed system prompt. Timeout 20 s, one retry.
+- **Clients:** Claude models through the official Anthropic Bedrock SDK, `AnthropicBedrockMantle` from
+  `@anthropic-ai/bedrock-sdk` (Bedrock's Messages API endpoint); Amazon Nova models through the
+  Bedrock **Converse API** (`ConverseCommand` from `@aws-sdk/client-bedrock-runtime`).
+- **Model:** tried in order until the AWS account accepts one: Claude Opus 5.5, Sonnet 5.5, Haiku 5.5,
+  Haiku 4.5, then Amazon Nova 2 Lite / Nova Lite / Nova Pro (override with `BEDROCK_MODEL`). The model
+  that answered is kept for later alerts and recorded with each description. Claude runs at
+  `output_config.effort: "low"`; Nova with `maxTokens: 150`. One image plus a fixed system prompt;
+  timeout 20 s.
 - **When:** only for events that put something on screen (doorbell press, person nearby). Log-only
   motion (cars, birds, branches) never calls Bedrock.
 - **Order:** the alert and the image are delivered first. The description arrives a moment later
@@ -58,10 +62,11 @@ Environment variables (Render: *Environment* tab; local: `server/.env.local`):
 | `BEDROCK_DESCRIPTIONS` | `on` (anything else, or unset, keeps it off) |
 | `AWS_BEARER_TOKEN_BEDROCK` | a Bedrock API key (AWS console → Amazon Bedrock → API keys). Or use standard AWS credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`) allowed to invoke Bedrock models. |
 | `AWS_REGION` | a region where the model is available, default `us-east-1` |
-| `BEDROCK_MODEL` | optional comma-separated list, tried in order; the first model your account can use is kept. Default: `anthropic.claude-opus-5-5,anthropic.claude-sonnet-5-5,anthropic.claude-haiku-5-5,anthropic.claude-haiku-4-5` |
+| `BEDROCK_MODEL` | optional comma-separated list, tried in order; the first model your account can use is kept. Default: the four Claude models above, then `us.amazon.nova-2-lite-v1:0,amazon.nova-lite-v1:0,us.amazon.nova-lite-v1:0,amazon.nova-pro-v1:0` |
 
-If Bedrock asks for it, enable access to Anthropic's Claude models in that region first (Amazon
-Bedrock console → model access).
+Some AWS accounts are not allowed to use Anthropic models (Bedrock answers 403 "... is not available
+for this account"); DoorSignal then uses Amazon Nova automatically. The error text from AWS is kept
+on the event, so the console timeline shows why a description is missing.
 
 The console shows **Amazon Bedrock descriptions on** when enabled; `GET /api/status` reports
 `bedrock.descriptions`, `bedrock.model` and `bedrock.region`.

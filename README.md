@@ -56,7 +56,7 @@ alerts while the corner PIP already existed; we have **not yet validated** DoorS
 | Ring Partner API — image snapshot (`POST /media/image/download`, 303 → pre-signed URL) | Image on every alert (`lib/media.ts`) |
 | Ring Partner API — WHEP live view (`recvonly`, offer after ICE gathering) | Console live view; frames are the fallback alert image (`app/Console.tsx`, `app/api/ring/stream`) |
 | Ring webhook contract (`button_press`, `motion_detected.sub_type`, HMAC `X-Signature`) | `app/api/ring/webhook`, `lib/ring/hmac.ts`, `lib/ring/schemas.ts` |
-| **Amazon Bedrock** — Claude with image input, via the Anthropic Bedrock SDK (`AnthropicBedrockMantle`) | One plain-language sentence about each alert image, shown under it and read by screen readers and braille displays (`lib/describe.ts`, `lib/pipeline.ts`). Never identifies people. Details: [docs/aws-bedrock.md](docs/aws-bedrock.md) |
+| **Amazon Bedrock** — Claude (Anthropic Bedrock SDK, `AnthropicBedrockMantle`) or Amazon Nova (Bedrock Converse API), with image input | One plain-language sentence about each alert image, shown under it and read by screen readers and braille displays (`lib/describe.ts`, `lib/pipeline.ts`). Never identifies people. Details: [docs/aws-bedrock.md](docs/aws-bedrock.md) |
 
 ## Architecture
 

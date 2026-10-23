@@ -1,10 +1,12 @@
-// One plain-language sentence about the doorbell image, from Claude on Amazon Bedrock
-// (Anthropic Bedrock Mantle client, SigV4 or a Bedrock API key). It is shown under the image
+// One plain-language sentence about the doorbell image, from a model on Amazon Bedrock:
+// Claude through the Anthropic Bedrock SDK (Mantle), or Amazon Nova through the Bedrock Converse API.
+// Auth: a Bedrock API key (AWS_BEARER_TOKEN_BEDROCK) or SigV4 credentials. It is shown under the image
 // and read by screen readers and braille displays, so a DeafBlind person learns who or what is
 // at the door. It never identifies people. Off unless BEDROCK_DESCRIPTIONS=on.
 import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { AnthropicBedrockMantle } from '@anthropic-ai/bedrock-sdk'
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime'
 import { config } from './config'
 
 export const DESCRIBE_SYSTEM = `You write one short sentence describing a doorbell camera image for a Deaf or DeafBlind person.
@@ -24,14 +26,20 @@ export interface Description {
 }
 
 type MessagesClient = Pick<AnthropicBedrockMantle, 'messages'>
-const g = globalThis as unknown as { __dsDescribeClient?: MessagesClient }
+type RuntimeClient = Pick<BedrockRuntimeClient, 'send'>
+const g = globalThis as unknown as { __dsDescribeClient?: MessagesClient; __dsRuntimeClient?: RuntimeClient }
 
 function client(): MessagesClient {
   return (g.__dsDescribeClient ??= new AnthropicBedrockMantle({ awsRegion: config.bedrock.region }))
 }
 
-export function setDescribeClientForTests(c: MessagesClient | undefined) {
+function runtime(): RuntimeClient {
+  return (g.__dsRuntimeClient ??= new BedrockRuntimeClient({ region: config.bedrock.region }))
+}
+
+export function setDescribeClientForTests(c: MessagesClient | undefined, r?: RuntimeClient) {
   g.__dsDescribeClient = c
+  g.__dsRuntimeClient = r
 }
 
 /** One line, no quotes or markup, at most 200 characters. */
@@ -52,19 +60,34 @@ export function resetDescribeModelForTests() {
   g2.__dsDescribeModel = undefined
 }
 
-// "<model> is not available for this account" (403) or an unknown model (404): try the next one.
-function modelUnavailable(e: unknown): boolean {
-  const status = (e as { status?: number }).status
-  return (status === 403 || status === 404) && /not available|not found|does not exist|access/i.test(errorDetail(e) ?? '')
+const isClaude = (model: string) => model.startsWith('anthropic.')
+
+function errorStatus(e: unknown): number | undefined {
+  return (e as { status?: number }).status ?? (e as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode
 }
 
 function errorDetail(e: unknown): string | undefined {
+  // Anthropic SDK errors carry the API body in .error; AWS SDK errors carry AWS's message in .message.
   const reason = (e as { error?: { error?: { message?: string }; message?: string } }).error
-  return reason?.error?.message ?? reason?.message
+  if (reason) return reason.error?.message ?? reason.message
+  return (e as { $metadata?: unknown }).$metadata ? (e as Error).message : undefined
 }
 
-async function ask(model: string, bytes: Buffer, mediaType: 'image/jpeg' | 'image/png') {
-  return client().messages.create(
+// The account can't use this model (403 "not available for this account", 404, or a model ID the
+// region doesn't serve on demand): try the next one.
+function modelUnavailable(e: unknown): boolean {
+  const status = errorStatus(e)
+  const msg = errorDetail(e) ?? ''
+  return (
+    ((status === 403 || status === 404) && /not available|not found|does not exist|access/i.test(msg)) ||
+    (status === 400 && /model identifier|on-demand|inference profile|not supported/i.test(msg))
+  )
+}
+
+type Answer = { text: string; refused: boolean }
+
+async function askClaude(model: string, bytes: Buffer, mediaType: 'image/jpeg' | 'image/png'): Promise<Answer> {
+  const res = await client().messages.create(
     {
       model,
       max_tokens: 2000,
@@ -83,6 +106,31 @@ async function ask(model: string, bytes: Buffer, mediaType: 'image/jpeg' | 'imag
     },
     { timeout: 20_000, maxRetries: 1 },
   )
+  return { text: res.content.map((b) => (b.type === 'text' ? b.text : '')).join(' '), refused: res.stop_reason === 'refusal' }
+}
+
+async function askConverse(model: string, bytes: Buffer, mediaType: 'image/jpeg' | 'image/png'): Promise<Answer> {
+  const res = await runtime().send(
+    new ConverseCommand({
+      modelId: model,
+      system: [{ text: DESCRIBE_SYSTEM }],
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { image: { format: mediaType === 'image/png' ? 'png' : 'jpeg', source: { bytes } } },
+            { text: 'Describe this doorbell camera image.' },
+          ],
+        },
+      ],
+      inferenceConfig: { maxTokens: 150 },
+    }),
+    { abortSignal: AbortSignal.timeout(20_000) },
+  )
+  return {
+    text: (res.output?.message?.content ?? []).map((c) => c.text ?? '').join(' '),
+    refused: res.stopReason === 'guardrail_intervened' || res.stopReason === 'content_filtered',
+  }
 }
 
 export async function describeImage(bytes: Buffer, mediaType: 'image/jpeg' | 'image/png' = 'image/jpeg'): Promise<Description> {
@@ -91,19 +139,18 @@ export async function describeImage(bytes: Buffer, mediaType: 'image/jpeg' | 'im
   for (const model of candidates) {
     const source = `bedrock: ${model}`
     try {
-      const res = await ask(model, bytes, mediaType)
+      const answer = await (isClaude(model) ? askClaude : askConverse)(model, bytes, mediaType)
       g2.__dsDescribeModel = model
       // A declined request is not an error for the household: the alert simply has no description.
-      if (res.stop_reason === 'refusal') return { text: null, source, error: 'The model declined to describe this image' }
-      const raw = res.content.map((b) => (b.type === 'text' ? b.text : '')).join(' ')
-      const text = cleanDescription(raw)
+      if (answer.refused) return { text: null, source, error: 'The model declined to describe this image' }
+      const text = cleanDescription(answer.text)
       return text ? { text, source, error: null } : { text: null, source, error: 'Empty description' }
     } catch (e) {
       last = e
       if (!modelUnavailable(e)) break
     }
   }
-  const status = (last as { status?: number }).status
+  const status = errorStatus(last)
   // AWS's own error text (e.g. "... is not available for this account") says what to fix; it carries no credentials.
   const detail = errorDetail(last)
   return {
