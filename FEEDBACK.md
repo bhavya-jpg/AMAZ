@@ -26,5 +26,5 @@ Friction we hit while building it is in FRICTION_LOG #6–#7.
 
 ## AWS (Amazon Bedrock)
 - **Used for:** a plain-language description of each alert image (Claude through the Anthropic Bedrock SDK, Amazon Nova through the Converse API), read by screen readers and braille displays. See `docs/aws-bedrock.md`.
-- **Worked well:** one Bedrock API key works with both the Anthropic Bedrock SDK and the AWS SDK; error messages say exactly what was denied and why.
+- **Worked well:** both the Anthropic Bedrock SDK and the AWS SDK picked up the same `AWS_BEARER_TOKEN_BEDROCK` with no extra code, and every 403 named the exact model or action denied and why.
 - **Needs work:** our account could not use Claude models and its organization policy denied Bedrock API keys, which we only learned from the first live call (FRICTION_LOG #12–#13).
