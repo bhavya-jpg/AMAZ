@@ -27,7 +27,7 @@ Ring button_press webhook
 
 - **Client:** the official Anthropic Bedrock SDK, `AnthropicBedrockMantle` from
   `@anthropic-ai/bedrock-sdk` (Bedrock's Messages API endpoint, `bedrock-mantle.<region>.api.aws`).
-- **Model:** `anthropic.claude-opus-5-5` (override with `BEDROCK_MODEL`), `output_config.effort: "low"`,
+- **Model:** Claude Opus 5.5 first, then Sonnet 5.5, Haiku 5.5 and Haiku 4.5 if the AWS account cannot use it (override with `BEDROCK_MODEL`); the model that answered is recorded with each description, `output_config.effort: "low"`,
   one image (base64 JPEG) plus a fixed system prompt. Timeout 20 s, one retry.
 - **When:** only for events that put something on screen (doorbell press, person nearby). Log-only
   motion (cars, birds, branches) never calls Bedrock.
@@ -58,7 +58,7 @@ Environment variables (Render: *Environment* tab; local: `server/.env.local`):
 | `BEDROCK_DESCRIPTIONS` | `on` (anything else, or unset, keeps it off) |
 | `AWS_BEARER_TOKEN_BEDROCK` | a Bedrock API key (AWS console → Amazon Bedrock → API keys). Or use standard AWS credentials (`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`) allowed to invoke Bedrock models. |
 | `AWS_REGION` | a region where the model is available, default `us-east-1` |
-| `BEDROCK_MODEL` | optional, default `anthropic.claude-opus-5-5` |
+| `BEDROCK_MODEL` | optional comma-separated list, tried in order; the first model your account can use is kept. Default: `anthropic.claude-opus-5-5,anthropic.claude-sonnet-5-5,anthropic.claude-haiku-5-5,anthropic.claude-haiku-4-5` |
 
 If Bedrock asks for it, enable access to Anthropic's Claude models in that region first (Amazon
 Bedrock console → model access).

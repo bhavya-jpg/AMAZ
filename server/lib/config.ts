@@ -29,6 +29,10 @@ export const config = {
   bedrock: {
     enabled: env('BEDROCK_DESCRIPTIONS') === 'on',
     region: env('AWS_REGION') ?? env('AWS_DEFAULT_REGION') ?? 'us-east-1',
-    model: env('BEDROCK_MODEL') ?? 'anthropic.claude-opus-5-5',
+    // Tried in order; the first model this AWS account can use is kept. Override with a comma-separated list.
+    models: (env('BEDROCK_MODEL') ?? 'anthropic.claude-opus-5-5,anthropic.claude-sonnet-5-5,anthropic.claude-haiku-5-5,anthropic.claude-haiku-4-5')
+      .split(',')
+      .map((m) => m.trim())
+      .filter(Boolean),
   },
 }

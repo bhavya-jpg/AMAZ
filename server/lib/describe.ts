@@ -41,43 +41,75 @@ export function cleanDescription(raw: string): string | null {
   return text.length > 200 ? `${text.slice(0, 197).trimEnd()}…` : text
 }
 
+const g2 = globalThis as unknown as { __dsDescribeModel?: string }
+
+/** The model that last answered (or the first to try). */
+export function describeModel(): string {
+  return g2.__dsDescribeModel ?? config.bedrock.models[0]
+}
+
+export function resetDescribeModelForTests() {
+  g2.__dsDescribeModel = undefined
+}
+
+// "<model> is not available for this account" (403) or an unknown model (404): try the next one.
+function modelUnavailable(e: unknown): boolean {
+  const status = (e as { status?: number }).status
+  return (status === 403 || status === 404) && /not available|not found|does not exist|access/i.test(errorDetail(e) ?? '')
+}
+
+function errorDetail(e: unknown): string | undefined {
+  const reason = (e as { error?: { error?: { message?: string }; message?: string } }).error
+  return reason?.error?.message ?? reason?.message
+}
+
+async function ask(model: string, bytes: Buffer, mediaType: 'image/jpeg' | 'image/png') {
+  return client().messages.create(
+    {
+      model,
+      max_tokens: 2000,
+      // A one-sentence caption needs little reasoning; low effort keeps it fast and cheap.
+      output_config: { effort: 'low' },
+      system: DESCRIBE_SYSTEM,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: bytes.toString('base64') } },
+            { type: 'text', text: 'Describe this doorbell camera image.' },
+          ],
+        },
+      ],
+    },
+    { timeout: 20_000, maxRetries: 1 },
+  )
+}
+
 export async function describeImage(bytes: Buffer, mediaType: 'image/jpeg' | 'image/png' = 'image/jpeg'): Promise<Description> {
-  const source = `bedrock: ${config.bedrock.model}`
-  try {
-    const res = await client().messages.create(
-      {
-        model: config.bedrock.model,
-        max_tokens: 2000,
-        // A one-sentence caption needs little reasoning; low effort keeps it fast and cheap.
-        output_config: { effort: 'low' },
-        system: DESCRIBE_SYSTEM,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: bytes.toString('base64') } },
-              { type: 'text', text: 'Describe this doorbell camera image.' },
-            ],
-          },
-        ],
-      },
-      { timeout: 20_000, maxRetries: 1 },
-    )
-    // A declined request is not an error for the household: the alert simply has no description.
-    if (res.stop_reason === 'refusal') return { text: null, source, error: 'The model declined to describe this image' }
-    const raw = res.content.map((b) => (b.type === 'text' ? b.text : '')).join(' ')
-    const text = cleanDescription(raw)
-    return text ? { text, source, error: null } : { text: null, source, error: 'Empty description' }
-  } catch (e) {
-    const status = (e as { status?: number }).status
-    // AWS's own error text (e.g. "You don't have access to the model...") says what to fix; it carries no credentials.
-    const reason = (e as { error?: { error?: { message?: string }; message?: string } }).error
-    const detail = reason?.error?.message ?? reason?.message
-    return {
-      text: null,
-      source,
-      error: `Amazon Bedrock request failed${status ? ` (HTTP ${status})` : ''}${detail ? `: ${String(detail).slice(0, 240)}` : ''}`,
+  const candidates = g2.__dsDescribeModel ? [g2.__dsDescribeModel] : config.bedrock.models
+  let last: unknown
+  for (const model of candidates) {
+    const source = `bedrock: ${model}`
+    try {
+      const res = await ask(model, bytes, mediaType)
+      g2.__dsDescribeModel = model
+      // A declined request is not an error for the household: the alert simply has no description.
+      if (res.stop_reason === 'refusal') return { text: null, source, error: 'The model declined to describe this image' }
+      const raw = res.content.map((b) => (b.type === 'text' ? b.text : '')).join(' ')
+      const text = cleanDescription(raw)
+      return text ? { text, source, error: null } : { text: null, source, error: 'Empty description' }
+    } catch (e) {
+      last = e
+      if (!modelUnavailable(e)) break
     }
+  }
+  const status = (last as { status?: number }).status
+  // AWS's own error text (e.g. "... is not available for this account") says what to fix; it carries no credentials.
+  const detail = errorDetail(last)
+  return {
+    text: null,
+    source: `bedrock: ${candidates.join(', ')}`,
+    error: `Amazon Bedrock request failed${status ? ` (HTTP ${status})` : ''}${detail ? `: ${String(detail).slice(0, 240)}` : ''}`,
   }
 }
 
