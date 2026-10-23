@@ -152,7 +152,8 @@ export async function describeImage(bytes: Buffer, mediaType: 'image/jpeg' | 'im
   }
   const status = errorStatus(last)
   // AWS's own error text (e.g. "... is not available for this account") says what to fix; it carries no credentials.
-  const detail = errorDetail(last)
+  // Stored on the event, which the public replay sandbox serves: mask ARNs and account numbers.
+  const detail = errorDetail(last)?.replace(/arn:aws[\w-]*:[^\s,]*/g, 'arn:…').replace(/\b\d{12}\b/g, '…')
   return {
     text: null,
     source: `bedrock: ${candidates.join(', ')}`,

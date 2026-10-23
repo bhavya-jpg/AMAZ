@@ -87,6 +87,18 @@ describe('describeImage', () => {
 })
 
 describe('Amazon Nova through the Bedrock Converse API', () => {
+  it('masks ARNs and account numbers in the stored error', async () => {
+    const send = vi.fn(async () => {
+      throw Object.assign(new Error('User: arn:aws:iam::123456789012:user/BedrockAPIKey-x is not authorized to perform: bedrock:CallWithBearerToken'), {
+        $metadata: { httpStatusCode: 403 },
+      })
+    })
+    mockClient(unavailable, { send })
+    const d = await describeImage(JPEG)
+    expect(d.error).toContain('User: arn:… is not authorized to perform: bedrock:CallWithBearerToken')
+    expect(d.error).not.toMatch(/123456789012/)
+  })
+
   it('falls back to Nova when the account cannot use any Claude model, sending the image bytes', async () => {
     const send = vi.fn(async (cmd: { input: Record<string, unknown> }) => ({
       cmdSeen: Boolean(cmd),
