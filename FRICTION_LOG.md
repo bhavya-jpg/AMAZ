@@ -79,3 +79,17 @@ read it in the source or docs but did not reproduce a failure against Ring.
 - **Task:** Start live view from a Chromium build without H264.
 - **Actual:** `500 INTERNAL_ERROR`; with H264 added to the offer the same request returned `201`.
 - **Severity:** Low–medium. **Suggestion:** return a 4xx naming the missing codec (H264/90000).
+
+### 12. Bedrock API keys denied by the account's organization policy, with no hint in the console
+- **Task:** Call Amazon Bedrock from the deployed app with a Bedrock API key (`AWS_BEARER_TOKEN_BEDROCK`).
+- **Actual:** Every Converse call returned `403 ... not authorized to perform: bedrock:CallWithBearerToken ... with an explicit deny in a service control policy`. The console let us create the API key anyway.
+- **Severity:** Medium — the key looks valid until the first call, and the fix (use IAM credentials) is only discoverable from the error text.
+- **Workaround:** Keep AWS's error text on the event (with ARNs masked) so the console shows why; switch to IAM credentials.
+- **Suggestion:** Warn at API-key creation when an SCP denies `bedrock:CallWithBearerToken`; document which credential types hackathon accounts allow.
+
+### 13. Claude models "not available for this account" on Bedrock
+- **Task:** Image descriptions with Claude on Bedrock.
+- **Actual:** `403 anthropic.claude-<model> is not available for this account ... contact AWS Sales` for Opus 5.5, Sonnet 5.5, Haiku 5.5 and Haiku 4.5.
+- **Severity:** Medium. **Workaround:** try models in order and fall back to Amazon Nova through the Converse API, recording which model answered.
+- **Suggestion:** Show model availability per account in the Bedrock console, and list the models hackathon accounts can use.
+
