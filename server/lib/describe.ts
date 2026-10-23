@@ -70,7 +70,14 @@ export async function describeImage(bytes: Buffer, mediaType: 'image/jpeg' | 'im
     return text ? { text, source, error: null } : { text: null, source, error: 'Empty description' }
   } catch (e) {
     const status = (e as { status?: number }).status
-    return { text: null, source, error: `Amazon Bedrock request failed${status ? ` (HTTP ${status})` : ''}` }
+    // AWS's own error text (e.g. "You don't have access to the model...") says what to fix; it carries no credentials.
+    const reason = (e as { error?: { error?: { message?: string }; message?: string } }).error
+    const detail = reason?.error?.message ?? reason?.message
+    return {
+      text: null,
+      source,
+      error: `Amazon Bedrock request failed${status ? ` (HTTP ${status})` : ''}${detail ? `: ${String(detail).slice(0, 240)}` : ''}`,
+    }
   }
 }
 
