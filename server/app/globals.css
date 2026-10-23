@@ -260,6 +260,7 @@ table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 td, th { text-align: left; padding: 10px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 th { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
 tbody tr:hover { background: #faf9f6; }
+.tl-desc { margin-top: 6px; max-width: 26ch; font-size: 0.8rem; color: var(--text-2); line-height: 1.35; }
 td:first-child, td b { white-space: nowrap; }
 .thumb { width: 84px; height: 50px; object-fit: cover; border-radius: 6px; background: #000; border: 1px solid var(--line); }
 video.live { width: 100%; background: #000; border-radius: 10px; aspect-ratio: 16/9; }
@@ -277,9 +278,12 @@ video.live { width: 100%; background: #000; border-radius: 10px; aspect-ratio: 1
 .alert.badge { background: var(--badge); color: #001; padding: 4vmin; border-radius: 0; font-size: inherit; font-weight: inherit; letter-spacing: normal; white-space: normal; }
 .alert .kind { font-size: 14vmin; font-weight: 800; line-height: 0.9; letter-spacing: -0.02em; }
 .alert .sub { font-size: 4.2vmin; font-weight: 700; }
+.alert:has(.desc) img { max-height: 42vh; }
 .alert img { max-height: 50vh; max-width: 80vw; border-radius: 2vmin; border: 0.8vmin solid #000; background: #000; }
 .alert .noimg { font-size: 3vmin; opacity: 0.8; }
 .alert .hint { font-size: 3.4vmin; font-weight: 700; }
+.alert .desc { margin: 0; max-width: 80vw; font-size: 3.6vmin; font-weight: 600; line-height: 1.25; }
+.alert .desc-src { display: block; margin-top: 0.6vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.7; }
 .alert .origin { position: absolute; top: 2.4vmin; right: 3vmin; font-family: var(--mono); font-size: 2.2vmin; font-weight: 700; background: #000; color: #fff; padding: 0.6vmin 1.6vmin; border-radius: 999px; }
 .alert .elapsed { position: absolute; top: 2.4vmin; left: 3vmin; font-family: var(--mono); font-size: 2.4vmin; font-weight: 700; font-variant-numeric: tabular-nums; }
 /* 2 flashes per second — below the 3 Hz photosensitivity threshold (WCAG 2.3.1) */

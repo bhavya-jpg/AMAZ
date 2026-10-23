@@ -26,6 +26,8 @@ export async function GET(req: Request) {
         origin: e.origin,
         image_url: e.image_path ? signedImagePath(e.id) : null,
         image_source: e.image_source,
+        description: e.description ?? null,
+        description_source: e.description_source ?? null,
       },
     }))
   return sseResponse(surface.id, req.signal, hello)

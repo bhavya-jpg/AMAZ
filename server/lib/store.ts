@@ -23,6 +23,8 @@ export interface EventRow {
   image_error: string | null
   acked_at: number | null
   acked_by: string | null
+  description?: string | null
+  description_source?: string | null
 }
 
 export interface SurfaceRow {
@@ -62,6 +64,9 @@ export function db(): DatabaseSync {
     const d = new DatabaseSync(file)
     d.exec('pragma journal_mode = wal;')
     d.exec(SCHEMA)
+    // Columns added after the first release: add them to databases created earlier.
+    const cols = new Set((d.prepare('pragma table_info(events)').all() as { name: string }[]).map((c) => c.name))
+    for (const c of ['description', 'description_source']) if (!cols.has(c)) d.exec(`alter table events add column ${c} text`)
     g.__dsDb = d
   }
   return g.__dsDb
@@ -99,6 +104,10 @@ export function setEventImage(id: string, imagePath: string | null, source: stri
 }
 
 /** Marks an event acknowledged; returns false if it was already acknowledged or does not exist. */
+export function setEventDescription(id: string, text: string | null, source: string | null) {
+  db().prepare('update events set description = ?, description_source = ? where id = ?').run(text, source, id)
+}
+
 export function ackEvent(id: string, by: string, at = Date.now()): boolean {
   return db().prepare('update events set acked_at = ?, acked_by = ? where id = ? and acked_at is null').run(at, by, id).changes === 1
 }

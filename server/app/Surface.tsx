@@ -14,6 +14,8 @@ interface Alert {
   image_url: string | null
   image_source: string | null
   image_error?: string | null
+  description?: string | null
+  description_source?: string | null
 }
 
 const storeKey = (v: Variant) => `doorsignal.surface.${v}`
@@ -96,7 +98,11 @@ export default function Surface({ variant }: { variant: Variant }) {
           fetch(`/api/events/${encodeURIComponent(d.event_id)}/rendered`, { method: 'POST', headers: { Authorization: `Bearer ${creds.token}` } }).catch(() => {})
           if (variant === 'phone' && 'vibrate' in navigator) navigator.vibrate(d.kind === 'door' ? [400, 200, 400, 200, 400] : [150])
         } else if (ev === 'update') {
-          setAlert((a) => (a && a.event_id === d.event_id ? { ...a, image_url: d.image_url, image_source: d.image_source, image_error: d.image_error } : a))
+          // Image and description updates arrive separately; merge only the fields each carries.
+          const patch = Object.fromEntries(
+            (['image_url', 'image_source', 'image_error', 'description', 'description_source'] as const).filter((k) => k in d).map((k) => [k, d[k]]),
+          )
+          setAlert((a) => (a && a.event_id === d.event_id ? { ...a, ...patch } : a))
         } else if (ev === 'clear') {
           setAlert((a) => (a && a.event_id === d.event_id ? null : a))
         }
@@ -200,6 +206,14 @@ export default function Surface({ variant }: { variant: Variant }) {
         <img src={alert.image_url} alt="Latest image from the Ring camera" data-testid="alert-img" />
       ) : (
         <div className="noimg">{alert.image_error ? 'No image available' : 'Getting image…'}</div>
+      )}
+      {alert.description && (
+        <p className="desc" data-testid="alert-desc" aria-live="polite">
+          {alert.description}
+          <span className="desc-src">
+            {alert.description_source?.startsWith('replay') ? 'AI description · Amazon Bedrock · recorded' : 'AI description · Amazon Bedrock'}
+          </span>
+        </p>
       )}
       <div className="hint">{alert.kind === 'door' ? 'Press OK to acknowledge' : 'No one rang — just letting you know'}</div>
       {alert.origin !== 'ring' && (

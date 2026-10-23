@@ -24,4 +24,11 @@ export const config = {
   ringAccessToken: env('RING_ACCESS_TOKEN'),
   imageTtlMinutes: Number(env('IMAGE_TTL_MIN') ?? 60),
   defaultMode: (env('DOORSIGNAL_MODE') ?? 'live') as 'live' | 'replay',
+  // Plain-language image descriptions with Claude on Amazon Bedrock. Off unless set to "on".
+  // Credentials: AWS_BEARER_TOKEN_BEDROCK (a Bedrock API key) or the standard AWS credential chain.
+  bedrock: {
+    enabled: env('BEDROCK_DESCRIPTIONS') === 'on',
+    region: env('AWS_REGION') ?? env('AWS_DEFAULT_REGION') ?? 'us-east-1',
+    model: env('BEDROCK_MODEL') ?? 'anthropic.claude-opus-5-5',
+  },
 }

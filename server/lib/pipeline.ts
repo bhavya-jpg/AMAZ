@@ -2,10 +2,12 @@
 //   policy → immediate alert fan-out → image acquisition → image update
 import { signedImagePath } from './auth'
 import { broadcast } from './hub'
+import { describeImage, replayDescription } from './describe'
 import { acquireImage } from './media'
-import { configuredDevice } from './mode'
+import { configuredDevice, currentMode } from './mode'
 import { config } from './config'
-import { deleteExpiredImages, setEventImage, type EventRow } from './store'
+import { readFileSync } from 'node:fs'
+import { deleteExpiredImages, setEventDescription, setEventImage, type EventRow } from './store'
 
 export function timelineEntry(ev: EventRow) {
   return {
@@ -19,9 +21,18 @@ export function timelineEntry(ev: EventRow) {
     image_url: ev.image_path ? signedImagePath(ev.id) : null,
     image_source: ev.image_source,
     image_error: ev.image_error,
+    description: ev.description ?? null,
+    description_source: ev.description_source ?? null,
     acked_at: ev.acked_at,
     acked_by: ev.acked_by,
   }
+}
+
+/** Amazon Bedrock when enabled; in the public replay sandbox, a recorded Bedrock response. */
+async function describe(imagePath: string) {
+  if (config.bedrock.enabled) return describeImage(readFileSync(imagePath))
+  if (currentMode() === 'replay') return replayDescription()
+  return null
 }
 
 export async function processEvent(ev: EventRow) {
@@ -54,5 +65,14 @@ export async function processEvent(ev: EventRow) {
       image_error: img.error,
     },
   })
-  broadcast({ event: 'event', data: timelineEntry({ ...ev, image_path: img.path, image_source: img.source, image_error: img.error }) })
+  let row: EventRow = { ...ev, image_path: img.path, image_source: img.source, image_error: img.error }
+  broadcast({ event: 'event', data: timelineEntry(row) })
+
+  if (!img.path) return
+  const d = await describe(img.path)
+  if (!d) return
+  setEventDescription(ev.id, d.text, d.error ? `${d.source} — ${d.error}` : d.source)
+  row = { ...row, description: d.text, description_source: d.error ? `${d.source} — ${d.error}` : d.source }
+  if (d.text) broadcast({ event: 'update', data: { event_id: ev.id, description: d.text, description_source: d.source } })
+  broadcast({ event: 'event', data: timelineEntry(row) })
 }

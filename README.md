@@ -44,6 +44,7 @@ alerts while the corner PIP already existed; we have **not yet validated** DoorS
 | Doorbell presses and motion events in the demo | **Simulated.** The Ring Developer Playground streams video but cannot emit `button_press` or motion webhooks. The simulator builds payloads in Ring's documented format, signs them with our dev key and POSTs them to the real webhook. Every such event is labelled **SIMULATED** in the UI. |
 | Alert images | **Real Ring media** when a Playground token is set (snapshot API, or a frame from the Ring live view). Without a token the UI says "No image available" — it never shows a placeholder as if it were a camera image. |
 | Replay mode (hosted judge sandbox) | Serves responses **recorded from the real Playground** by `npm run capture` (Playground tokens expire after ~30 min). Labelled **REPLAY**. |
+| Image descriptions (Amazon Bedrock) | **Real** Claude-on-Bedrock calls when `BEDROCK_DESCRIPTIONS=on` (`server/lib/describe.ts`). Without AWS credentials, the replay sandbox can show a description recorded from a real Bedrock response (`server/fixtures/replay/bedrock-description.json`), labelled *recorded*; with neither, no description is shown. See [docs/aws-bedrock.md](docs/aws-bedrock.md). |
 | Fire TV app (`firetv/`) | **Experimental, not part of this submission.** It builds in CI, but has never been run on a Fire TV device or emulator, so we make no claims about it. |
 
 ## Amazon technology used — and where it runs
@@ -55,6 +56,7 @@ alerts while the corner PIP already existed; we have **not yet validated** DoorS
 | Ring Partner API — image snapshot (`POST /media/image/download`, 303 → pre-signed URL) | Image on every alert (`lib/media.ts`) |
 | Ring Partner API — WHEP live view (`recvonly`, offer after ICE gathering) | Console live view; frames are the fallback alert image (`app/Console.tsx`, `app/api/ring/stream`) |
 | Ring webhook contract (`button_press`, `motion_detected.sub_type`, HMAC `X-Signature`) | `app/api/ring/webhook`, `lib/ring/hmac.ts`, `lib/ring/schemas.ts` |
+| **Amazon Bedrock** — Claude with image input, via the Anthropic Bedrock SDK (`AnthropicBedrockMantle`) | One plain-language sentence about each alert image, shown under it and read by screen readers and braille displays (`lib/describe.ts`, `lib/pipeline.ts`). Never identifies people. Details: [docs/aws-bedrock.md](docs/aws-bedrock.md) |
 
 ## Architecture
 

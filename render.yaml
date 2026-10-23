@@ -21,3 +21,10 @@ services:
         generateValue: true
       - key: IMAGE_TTL_MIN
         value: "60"
+      # Amazon Bedrock image descriptions (docs/aws-bedrock.md): set to "on" with a Bedrock API key.
+      - key: BEDROCK_DESCRIPTIONS
+        sync: false
+      - key: AWS_BEARER_TOKEN_BEDROCK
+        sync: false
+      - key: AWS_REGION
+        value: us-east-1

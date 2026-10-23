@@ -9,11 +9,14 @@ export interface AlertMessage {
   origin: 'ring' | 'simulated' | 'replay'
   image_url: string | null
   image_source: string | null
+  description?: string | null
+  description_source?: string | null
 }
 
 export type HubMessage =
   | { event: 'alert'; data: AlertMessage }
   | { event: 'update'; data: { event_id: string; image_url: string | null; image_source: string | null; image_error: string | null } }
+  | { event: 'update'; data: { event_id: string; description: string; description_source: string | null } }
   | { event: 'clear'; data: { event_id: string; acked_by: string } }
   | { event: 'event'; data: Record<string, unknown> } // timeline entries for the console
 

@@ -10,6 +10,7 @@ interface Status {
   ring_token: { source: 'console' | 'env' | 'none'; setAt: number | null }
   device: { id: string; name: string } | null
   replay: { available: boolean; captured_at?: string; source?: string; device?: { id: string; name: string } }
+  bedrock?: { descriptions: boolean; model: string | null; region: string | null }
   surfaces: { id: string; type: string; name: string; last_seen: number | null; connected: boolean }[]
 }
 
@@ -23,6 +24,8 @@ interface TimelineEvent {
   image_url: string | null
   image_source: string | null
   image_error: string | null
+  description?: string | null
+  description_source?: string | null
   acked_at: number | null
   acked_by: string | null
   deliveries?: { surface: string; type: string; sent_ms: number; rendered_ms: number | null }[]
@@ -142,6 +145,9 @@ function ModeBadge({ status }: { status: Status }) {
       )}
       <span className={`spill ${status.webhook_key_configured ? 'spill-ok' : 'spill-bad'}`}>
         <span className="dot" /> Webhook key {status.webhook_key_configured ? 'configured' : 'missing'}
+      </span>
+      <span className={`spill ${status.bedrock?.descriptions ? 'spill-ok' : ''}`} data-testid="bedrock">
+        <span className="dot" /> Amazon Bedrock descriptions {status.bedrock?.descriptions ? 'on' : status.mode === 'replay' ? 'replayed' : 'off'}
       </span>
     </div>
   )
@@ -447,6 +453,7 @@ function Timeline({ events, admin, onChange }: { events: TimelineEvent[]; admin:
                 <td className="small">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   {e.image_url ? <img className="thumb" src={e.image_url} alt="" title={e.image_source ?? ''} /> : e.decision === 'log' ? '—' : <span className="muted" title={e.image_error ?? ''}>none</span>}
+                  {e.description && <div className="tl-desc" title={e.description_source ?? ''}>{e.description}</div>}
                 </td>
                 <td className="small">
                   {e.deliveries?.length
